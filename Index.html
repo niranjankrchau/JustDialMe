@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup with Email OTP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f5f7;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      margin-top: 10px;
+      font-weight: 600;
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    input[type="radio"] {
+      margin-right: 5px;
+      margin-left: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #otpSection, #proceedBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #e9f7ef;
+      border: 1px solid #c3e6cb;
+      border-radius: 8px;
+    }
+
+    #otpSection label {
+      font-weight: 500;
+    }
+
+    small {
+      color: #555;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+	#otpSection, #mobileOtpSection, #proceedBtn {
+  display: none;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Signup</h2>
+
+    <form id="signupForm">
+      <label>User Type:</label>
+      <input type="radio" name="usertype" value="advertiser" required> Advertiser
+      <input type="radio" name="usertype" value="viewer"> Viewer
+
+      <label>First Name:</label>
+      <input type="text" name="fname" required>
+
+      <label>Last Name:</label>
+      <input type="text" name="lname" required>
+
+      <label>Gender:</label>
+      <select name="gender" required>
+        <option value="">Select</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+
+      <label>Mobile:</label>
+      <input type="tel" name="mobile" required maxlength="10">
+
+      <label>Email:</label>
+      <input type="email" name="email" required>
+
+      <button type="button" onclick="sendOtp()">Send OTP</button>
+    </form>
+
+    <div id="otpSection">
+      <label>Enter OTP sent to <strong><span id="maskedEmail"></span></strong>:</label>
+      <input type="text" id="otpInput" maxlength="6" placeholder="Enter 6-digit OTP">
+      <button onclick="verifyOtp()">Verify OTP</button>
+      <p><small>OTP expires in <span id="otpTimer">60</span> seconds</small></p>
+    </div>
+    <div id="mobileOtpSection">
+  <label>Enter OTP sent to <strong><span id="maskedMobile"></span></strong>:</label>
+  <input type="text" id="mobileOtpInput" maxlength="6" placeholder="Enter 6-digit OTP">
+  <button onclick="verifyMobileOtp()">Verify Mobile OTP</button>
+  <p><small>Mobile OTP expires in <span id="mobileOtpTimer">60</span> seconds</small></p>
+</div>
+
+    <button id="proceedBtn" onclick="proceed()">Proceed to Dashboard</button>
+  </div>
+<script>
+  let emailOtp = "";
+  let mobileOtp = "";
+  let emailVerified = false;
+  let mobileVerified = false;
+  let emailCountdown;
+  let mobileCountdown;
+
+  function maskEmail(email) {
+    const [user, domain] = email.split('@');
+    if (user.length <= 1) return '*@' + domain;
+    return user[0] + '*'.repeat(user.length - 1) + '@' + domain;
+  }
+
+  function maskMobile(mobile) {
+    return mobile.slice(0, 2) + '******' + mobile.slice(-2);
+  }
+
+  function sendOtp() {
+    const form = document.getElementById("signupForm");
+    const email = form.email.value.trim();
+    const mobile = form.mobile.value.trim();
+
+    if (!email || !mobile) {
+      alert("Enter both email and mobile before sending OTPs.");
+      return;
+    }
+
+    // Email OTP
+    emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    alert(`Mock Email OTP sent to ${email}: ${emailOtp}`);
+    document.getElementById("otpSection").style.display = "block";
+    document.getElementById("maskedEmail").textContent = maskEmail(email);
+
+    let emailTime = 60;
+    document.getElementById("otpTimer").innerText = emailTime;
+    clearInterval(emailCountdown);
+    emailCountdown = setInterval(() => {
+      emailTime--;
+      document.getElementById("otpTimer").innerText = emailTime;
+      if (emailTime <= 0) {
+        clearInterval(emailCountdown);
+        alert("Email OTP expired. Please resend.");
+        location.reload();
+      }
+    }, 1000);
+
+    // Mobile OTP
+    mobileOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    alert(`Mock Mobile OTP sent to ${mobile}: ${mobileOtp}`);
+    document.getElementById("mobileOtpSection").style.display = "block";
+    document.getElementById("maskedMobile").textContent = maskMobile(mobile);
+
+    let mobileTime = 60;
+    document.getElementById("mobileOtpTimer").innerText = mobileTime;
+    clearInterval(mobileCountdown);
+    mobileCountdown = setInterval(() => {
+      mobileTime--;
+      document.getElementById("mobileOtpTimer").innerText = mobileTime;
+      if (mobileTime <= 0) {
+        clearInterval(mobileCountdown);
+        alert("Mobile OTP expired. Please resend.");
+        location.reload();
+      }
+    }, 1000);
+  }
+
+  function verifyOtp() {
+    const userOtp = document.getElementById("otpInput").value.trim();
+    if (!/^\d{6}$/.test(userOtp)) {
+      alert("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    if (userOtp === emailOtp) {
+      clearInterval(emailCountdown);
+      alert("Email OTP Verified!");
+      emailVerified = true;
+      checkIfBothVerified();
+    } else {
+      alert("Incorrect Email OTP. Please try again.");
+    }
+  }
+
+  function verifyMobileOtp() {
+    const userOtp = document.getElementById("mobileOtpInput").value.trim();
+    if (!/^\d{6}$/.test(userOtp)) {
+      alert("Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    if (userOtp === mobileOtp) {
+      clearInterval(mobileCountdown);
+      alert("Mobile OTP Verified!");
+      mobileVerified = true;
+      checkIfBothVerified();
+    } else {
+      alert("Incorrect Mobile OTP. Please try again.");
+    }
+  }
+
+  function checkIfBothVerified() {
+    if (emailVerified && mobileVerified) {
+      document.getElementById("proceedBtn").style.display = "block";
+    }
+  }
+
+  function proceed() {
+    const form = document.getElementById("signupForm");
+    const userType = form.usertype.value;
+    const fname = form.fname.value;
+    const lname = form.lname.value;
+    const gender = form.gender.value;
+    const mobile = form.mobile.value;
+    const email = form.email.value;
+
+    const target = userType === 'advertiser' ? 'dashboard.html' : 'viewer.html';
+    const params = `fname=${encodeURIComponent(fname)}&lname=${encodeURIComponent(lname)}&gender=${encodeURIComponent(gender)}&mobile=${encodeURIComponent(mobile)}&email=${encodeURIComponent(email)}`;
+
+    window.location.href = `${target}?${params}`;
+  }
+</script>
+</body>
+</html>
