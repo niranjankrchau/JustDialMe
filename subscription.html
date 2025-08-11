@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subscription Payment</title>
+  <style>
+    label, select, button {
+      display: block;
+      margin: 10px 0;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #receiptPopup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 30%;
+      background: #fff;
+      padding: 20px;
+      border: 2px solid #000;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <h2>Pay Subscription</h2>
+
+  <label for="amount">Select Subscription:</label>
+  <select id="amount">
+    <option value="10">Rs.10 - 1 Day</option>
+    <option value="200">Rs.200 - 1 Month</option>
+    <option value="500">Rs.500 - 3 Months</option>
+    <option value="800">Rs.800 - 6 Months</option>
+    <option value="1300">Rs.1300 - 1 Year</option>
+  </select>
+
+  <button id="payBtn" onclick="confirmPayment()">Confirm Payment</button>
+  <div id="status"></div>
+
+  <!-- 📄 Receipt Popup -->
+  <div id="receiptPopup">
+    <h3>Payment Receipt</h3>
+    <p><strong>Amount:</strong> Rs. <span id="receiptAmount"></span></p>
+    <p><strong>Validity:</strong> <span id="receiptDate"></span></p>
+    <button onclick="closeReceipt()">OK</button>
+  </div>
+
+  <script>
+    function confirmPayment() {
+      const amount = parseInt(document.getElementById("amount").value);
+      const durations = {
+        10: 1,
+        200: 30,
+        500: 90,
+        800: 180,
+        1300: 365
+      };
+
+      const days = durations[amount];
+      const professionals = JSON.parse(localStorage.getItem("professionals")) || [];
+      const index = parseInt(localStorage.getItem("currentProfessionalIndex"), 10);
+
+      if (!isNaN(index) && professionals[index]) {
+        // Show loading spinner
+        document.getElementById("status").innerHTML = "Processing payment <span class='loader'></span>";
+
+        const today = new Date();
+        const expiryDate = new Date(today.setDate(today.getDate() + days));
+        const formatted = expiryDate.toISOString().split("T")[0];
+
+        // Update expiry
+        professionals[index][11] = formatted;
+        localStorage.setItem("professionals", JSON.stringify(professionals));
+        localStorage.setItem("recentlyRechargedIndex", index);
+        localStorage.removeItem("currentProfessionalIndex");
+
+        // Show receipt after short delay
+        setTimeout(() => {
+          document.getElementById("receiptAmount").innerText = amount;
+          document.getElementById("receiptDate").innerText = formatted;
+          document.getElementById("status").innerHTML = ""; // clear spinner
+          document.getElementById("receiptPopup").style.display = "block";
+        }, 1000);
+
+      } else {
+        alert("Error: Professional not found.");
+      }
+    }
+
+    function closeReceipt() {
+      document.getElementById("receiptPopup").style.display = "none";
+      window.location.href = "advertiser_dashboard.html";
+    }
+  </script>
+</body>
+</html>

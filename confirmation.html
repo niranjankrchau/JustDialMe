@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Subscription Confirmation</title>
+  <style>
+    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Subscription Confirmation</h2>
+  <div id="details"></div>
+
+  <script>
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    const index = parseInt(getQueryParam("index"));
+    const professionals = JSON.parse(localStorage.getItem("professionals")) || [];
+
+    if (professionals[index]) {
+      const fields = [
+        "First Name", "Last Name", "Gender", "Mobile", "Email",
+        "Profession", "Experience", "Address", "Pincode", "Landmark",
+        "Home Service", "Validity"
+      ];
+
+      let html = "<table>";
+      professionals[index].forEach((val, i) => {
+        html += `<tr><th>${fields[i]}</th><td>${val}</td></tr>`;
+      });
+      html += "</table>";
+
+      document.getElementById("details").innerHTML = html;
+    } else {
+      document.getElementById("details").innerText = "No professional data found.";
+    }
+  </script>
+</body>
+</html>
